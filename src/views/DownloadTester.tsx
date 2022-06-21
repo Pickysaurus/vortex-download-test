@@ -81,7 +81,7 @@ function DownloadTester(props: IProps): JSX.Element {
             <Modal.Header>
                 <h2>{t('Nexus Mods Download Speed Test')}</h2>
             </Modal.Header>
-            <Modal.Body style={{maxHeight: '30em', overflow: 'auto'}}>
+            <Modal.Body style={{maxHeight: '45em', overflow: 'auto'}}>
                 {renderStage(modalStage)}
             </Modal.Body>
             <Modal.Footer>
