@@ -47,7 +47,7 @@ const Results = (props: IProps): JSX.Element => {
             <h3>{t('Recommendations')}</h3>
             {t('To get the best out of your Nexus Mods downloads, here are your recommendations.')}
             <div>
-            {recommendations.length ? recommendations : t('No recommendations.')}
+            {recommendations.length ? recommendations : noRecommendations(t) }
             </div>
             <h3>{t('Report Download Issues')}</h3>
             {t('If you would like to report your results to the Nexus Mods team please fill in the details below.')}
@@ -84,6 +84,15 @@ const Results = (props: IProps): JSX.Element => {
             <p>{t('Clicking "Submit report" will copy the relevant data to your clipboard and open the new thread page in the Nexus Mods support forums. You will need to paste in your results and add a title in order to complete the post.')}</p>
         </div>
     );
+}
+
+const noRecommendations = (t): JSX.Element => {
+    return renderAlert(
+        'success',
+        'toggle-enabled',
+        t('No recommendations'),
+        t('Vortex could not determine any recommendations to improve your setup.')
+    )
 }
 
 const ispIssue = (t): JSX.Element => {

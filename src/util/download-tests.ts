@@ -19,23 +19,23 @@ const testServers: ITestServer[] = [
     },
     {
         name: 'EU - Amsterdam',
-        url: 'http://amsterdam.nexus-cdn.com/1G'
+        url: 'http://amsterdam.nexus-cdn.com/500M'
     },
     {
         name: 'EU - Prague',
-        url: 'http://prague.nexus-cdn.com/1G'
+        url: 'http://prague.nexus-cdn.com/500M'
     },
     {
         name: 'US - Los Angeles',
-        url: 'http://la.nexus-cdn.com/1G'
+        url: 'http://la.nexus-cdn.com/500M'
     },
     {
         name: 'US - Chicago',
-        url: 'http://chicago.nexus-cdn.com/1G'
+        url: 'http://chicago.nexus-cdn.com/500M'
     },
     {
         name: 'US - Miami',
-        url: 'http://miami.nexus-cdn.com/1G'
+        url: 'http://miami.nexus-cdn.com/500M'
     },
 ];
 
@@ -116,6 +116,7 @@ async function testDownloadServer(api: types.IExtensionApi, server: ITestServer)
 
 async function runDownloadTests(context: types.IExtensionContext, minSpeed: number, status: (current: ITestProgress) => void): Promise<IDownloadTestResults> {
     
+    const serversToTest = [...testServers];
     let progress = 0;
     const step = 100 / 11;
     status({message: 'Starting download tests...', progress});
@@ -137,13 +138,13 @@ async function runDownloadTests(context: types.IExtensionContext, minSpeed: numb
             results[resKey] = result;
             // If large test, we also want to work out the CDN server.
             if (key === 'large') {
-                testServers.unshift({ name: 'Nexus Mods CDN', url: result });
+                serversToTest.unshift({ name: 'Nexus Mods CDN', url: result });
             }
         }
         catch(err) {
             log('error', 'Could not test CDN links', {err, file});
             if (key === 'large') {
-                testServers.unshift({ name: 'Nexus Mods CDN', url: undefined });
+                serversToTest.unshift({ name: 'Nexus Mods CDN', url: undefined });
             }
         }
         
@@ -151,7 +152,7 @@ async function runDownloadTests(context: types.IExtensionContext, minSpeed: numb
 
     
     // Perform the download test for each CDN node.
-    for (const server of testServers) {
+    for (const server of serversToTest) {
         status({message: `Testing download server: ${server.name}`, progress: progress += step});
         try {
             const speed = await testDownloadServer(context.api, server);
