@@ -1,6 +1,6 @@
 {
   "name": "nexusmods-downloadtest",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Vortex extension for testing Nexus Mods download speeds.",
   "main": "./dist/index.js",
   "scripts": {
