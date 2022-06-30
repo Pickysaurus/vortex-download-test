@@ -34,7 +34,7 @@ function DownloadTester(props: IProps): JSX.Element {
 
     React.useEffect(() => {
         // Reset the modal if it is closed.
-        if (!visible) setModalStage('start');
+        if (!visible) setModalStage(stages[0]);
     }, [visible]);
 
     React.useEffect(() => {
@@ -67,10 +67,7 @@ function DownloadTester(props: IProps): JSX.Element {
     }
 
     const nextStage = () => {
-        if (modalStage === 'result') {
-            setModalStage(stages[0]);
-            return onHide();
-        }
+        if (['result', 'report'].includes(modalStage)) return onHide();
         const idx = stages.indexOf(modalStage) + 1;
         setModalStage(stages[idx]);
     }
@@ -90,7 +87,7 @@ function DownloadTester(props: IProps): JSX.Element {
             </Modal.Body>
             <Modal.Footer>
                 <Button onClick={onHide} disabled={downloadTesting}>{t<string>('Cancel')}</Button>
-                <Button onClick={nextStage} disabled={disableNext()}>{modalStage === 'result' ? t<string>('Done') : t<string>('Next')}</Button>
+                <Button onClick={nextStage} disabled={disableNext()}>{['result', 'report'].includes(modalStage) ? t<string>('Done') : t<string>('Next')}</Button>
             </Modal.Footer>
         </Modal>
     );

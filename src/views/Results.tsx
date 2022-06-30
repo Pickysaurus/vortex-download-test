@@ -36,7 +36,7 @@ const Results = (props: IProps): JSX.Element => {
             </div>
             <h3>{t('Still having problems?')}</h3>
             {t('If you\'re still having problems and would like to have your results reviewed by the Nexus Mods team click the button below.')}
-            <Button onClick={() => setModalStage('report')} >{t('Report download issue')}</Button>
+            <div><Button onClick={() => setModalStage('report')} >{t('Report download issue')}</Button></div>
         </div>
     );
 }

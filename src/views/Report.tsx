@@ -34,7 +34,7 @@ const Report = (props: IProps): JSX.Element => {
     return (
         <div>
             <h3>{t('Report Download Issues')}</h3>
-            {t('If you would like to report your results to the Nexus Mods team please fill in the details below.')}
+            {t('Please complete the following fields to help us understand more about your setup.')}
             <FormGroup>
                 <ControlLabel>{t<string>('Country')}</ControlLabel>
                 <Select 
