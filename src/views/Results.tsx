@@ -1,31 +1,23 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, TFunction } from 'react-i18next';
 import { IDownloadTestResults } from '../types/types';
-import { types, Icon, util, FormInput } from 'vortex-api';
-import forumPost from '../util/forum-post';
-import { clipboard } from 'electron';
-import { getData as getCountries } from 'country-list';
-import { Button, FormGroup, Alert, Row, Col, ControlLabel } from 'react-bootstrap';
-import Select from 'react-select';
+import { types, Icon, util } from 'vortex-api';
+import { Button, Alert, Row, Col } from 'react-bootstrap';
 
-const forumUrl = 'https://forums.nexusmods.com/index.php?app=forums&module=post&section=post&do=new_post&f=117';
 const premiumUrl = 'https://users.nexusmods.com/account/billing/premium';
 const accountSettingsUrl = 'https://www.nexusmods.com/users/myaccount';
 
 
 interface IProps {
     dlResults: IDownloadTestResults;
+    setModalStage: React.Dispatch<string>;
 }
 
 const Results = (props: IProps): JSX.Element => {
     const { t } = useTranslation(['download-tester']);
     const nexusAccount = useSelector((state: types.IState) => (state.persistent as any).nexus?.userInfo);
-    const [countries, updateCountries] : [{label: string, value: string}[], React.Dispatch<any>] = React.useState(getCountries().map(c => ({ label: c.name, value: c.code })));
-    const [isp, setIsp]: [string, React.Dispatch<any>] = React.useState();
-    const [dlSpeed, setDlSpeed]: [number, React.Dispatch<any>] = React.useState(undefined);
-    const [selectedCountry, selectCountry]: [string, React.Dispatch<any>] = React.useState();
-    const { dlResults } = props;
+    const { dlResults, setModalStage } = props;
 
     const recommendations: JSX.Element[] = [];
 
@@ -35,13 +27,6 @@ const Results = (props: IProps): JSX.Element => {
 
     if (allServersAreSlow(dlResults)) recommendations.push(ispIssue(t));
 
-    const submitReport = () => {
-        const country = countries.find(c => c.value === selectedCountry);
-        const forumTemplate: string = forumPost(country.label, isp, dlSpeed, dlResults);
-        clipboard.writeText(forumTemplate);
-        return util.opn(forumUrl).catch(() => undefined);
-    }
-
     return (
         <div>
             <h3>{t('Recommendations')}</h3>
@@ -49,44 +34,14 @@ const Results = (props: IProps): JSX.Element => {
             <div>
             {recommendations.length ? recommendations : noRecommendations(t) }
             </div>
-            <h3>{t('Report Download Issues')}</h3>
-            {t('If you would like to report your results to the Nexus Mods team please fill in the details below.')}
-            <FormGroup>
-                <ControlLabel>{t<string>('Country')}</ControlLabel>
-                <Select 
-                    options={countries}
-                    value={selectedCountry}
-                    onChange={(v: { label: string, value: string }) => selectCountry(v?.value)}
-                    placeholder={t('Select your country...')}
-                />
-            </FormGroup>
-            <FormGroup>
-                <ControlLabel>{t<string>('Internet Service Provider')}</ControlLabel>
-                <FormInput 
-                    value={isp}
-                    placeholder={t('e.g. Virgin Media')}
-                    onChange={(newVal: string) => setIsp(newVal)}
-                />
-            </FormGroup>
-            <FormGroup>
-                <ControlLabel>{t<string>('Download Speed (MB/s)')}</ControlLabel>
-                <FormInput 
-                    value={dlSpeed}
-                    placeholder={t('e.g. 5MB/s')}
-                    onChange={(newVal: string) => setDlSpeed(newVal.length ? parseInt(newVal) : undefined)}
-                    type='number'
-                    min={0}
-                />
-            </FormGroup>
-            <Button disabled={!dlSpeed || !isp || !selectedCountry} onClick={submitReport}>
-                {t<string>('Submit report')}
-            </Button>
-            <p>{t('Clicking "Submit report" will copy the relevant data to your clipboard and open the new thread page in the Nexus Mods support forums. You will need to paste in your results and add a title in order to complete the post.')}</p>
+            <h3>{t('Still having problems?')}</h3>
+            {t('If you\'re still having problems and would like to have your results reviewed by the Nexus Mods team click the button below.')}
+            <Button onClick={() => setModalStage('report')} >{t('Report download issue')}</Button>
         </div>
     );
 }
 
-const noRecommendations = (t): JSX.Element => {
+const noRecommendations = (t: TFunction): JSX.Element => {
     return renderAlert(
         'success',
         'toggle-enabled',
@@ -95,7 +50,7 @@ const noRecommendations = (t): JSX.Element => {
     )
 }
 
-const ispIssue = (t): JSX.Element => {
+const ispIssue = (t: TFunction): JSX.Element => {
     return renderAlert(
         'warning',
         'download-speed',
@@ -105,7 +60,7 @@ const ispIssue = (t): JSX.Element => {
     )
 }
 
-const premiumRecommendation = (t): JSX.Element => {
+const premiumRecommendation = (t: TFunction): JSX.Element => {
     return renderAlert(
         'info',
         'plugin-master',
@@ -115,7 +70,7 @@ const premiumRecommendation = (t): JSX.Element => {
     );
 }
 
-const changeServerRecommendation = (t, isPremium: boolean, res: IDownloadTestResults): JSX.Element => {
+const changeServerRecommendation = (t: TFunction, isPremium: boolean, res: IDownloadTestResults): JSX.Element => {
     if (isPremium) {
         const best = Object.keys(res.serverTests)[0];
 
@@ -154,7 +109,7 @@ function betterServerAvailable(results: IDownloadTestResults): boolean {
     return goodServers.length ? true : false;
 }
 
-const renderAlert = (alertClass:string, iconName: string, title, text: string, button?: JSX.Element): JSX.Element => {
+const renderAlert = (alertClass:string, iconName: string, title: string, text: string, button?: JSX.Element): JSX.Element => {
     return (
         <Alert bsStyle={alertClass} style={{margin: '4px 0'}}>
             <Row>

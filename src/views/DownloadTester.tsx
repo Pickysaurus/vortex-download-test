@@ -7,6 +7,7 @@ import QuickChecks from './QuickChecks';
 import Start from './Start';
 import DownloadTest from './DownloadTest';
 import Results from './Results';
+import Report from './Report';
 import { types, Modal, MainContext } from 'vortex-api';
 import { IDownloadTestResults, ITestProgress } from '../types/types';
 
@@ -17,10 +18,10 @@ interface IBaseProps {
 
 type IProps = IBaseProps;
 
-type TestStage = 'start' | 'quick-checks' | 'download-tests' | 'result';
+type TestStage = 'start' | 'quick-checks' | 'download-tests' | 'result' | 'report';
 
 function DownloadTester(props: IProps): JSX.Element {
-    const stages: TestStage[] = ['start', 'quick-checks', 'download-tests', 'result'];
+    const stages: TestStage[] = ['start', 'quick-checks', 'download-tests', 'result', 'report'];
     const { visible, onHide } = props;
     const { t } = useTranslation(['download-tester']);
     const nexusAccount = useSelector((state: types.IState) => (state.persistent as any).nexus?.userInfo);
@@ -59,20 +60,23 @@ function DownloadTester(props: IProps): JSX.Element {
                 setResults={setDownloadTestResults}
                 />
             );
-            case 'result': return <Results dlResults={downloadTestResults} />;
+            case 'result': return <Results dlResults={downloadTestResults} setModalStage={setModalStage} />;
+            case 'report': return <Report dlResults={downloadTestResults} />;
             default: return <Start />;
         }
     }
 
     const nextStage = () => {
-        if (modalStage === 'result') return;
+        if (modalStage === 'result') {
+            setModalStage(stages[0]);
+            return onHide();
+        }
         const idx = stages.indexOf(modalStage) + 1;
         setModalStage(stages[idx]);
     }
 
     const disableNext = (): boolean => {
-        if (modalStage === 'result') return true;
-        else if (modalStage === 'download-tests' && downloadTesting === true) return true;
+        if (modalStage === 'download-tests' && downloadTesting === true) return true;
         else return false;
     }
 
