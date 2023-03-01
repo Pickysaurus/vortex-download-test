@@ -4,8 +4,8 @@ interface IDownloadTestResults {
     serverTests: {
         [id: string]: IDownloadResult;
     }
-    cdnTest: IDownloadResult;
-    trace: string;
+    cdnTest: IDownloadResult | undefined;
+    trace: string | undefined;
     smallFileExample?: string;
     largeFileExample?: string;
 }
@@ -26,7 +26,7 @@ interface ITestProgress {
 
 interface ITestServer {
     name: string;
-    url: string;
+    url?: string;
 }
 
 interface ITestWithRating {

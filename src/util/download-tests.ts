@@ -15,7 +15,8 @@ const testTimeMs: number = 16000; // 31 seconds as we record the last 30 seconds
 const testServers: ITestServer[] = [
     {
         name: 'Worldwide - Premium CDN',
-        url: 'https://nexus-speedtest.b-cdn.net/500MB.bin'
+        // url: 'https://nexus-speedtest.b-cdn.net/500MB.bin'
+        url: 'https://cf-speedtest.nexusmods.com/500M'
     },
     {
         name: 'EU - Amsterdam',
@@ -88,7 +89,7 @@ async function testDownloadServer(api: types.IExtensionApi, server: ITestServer)
         return average;
     }
     
-    const downloadCallback = async (err: Error, id: string): Promise<number> => {
+    const downloadCallback = async (err: Error|undefined, id: string): Promise<number> => {
         if (err) throw new Error('Download test failed: '+err);
         // Wait 30 seconds to get a good sample.
         await timeoutProm(testTimeMs);
@@ -98,7 +99,7 @@ async function testDownloadServer(api: types.IExtensionApi, server: ITestServer)
     // start the download.
     return new Promise(async (resolve, reject) => {
         // Clear the download speed graph
-        api.store.dispatch(actions.setDownloadSpeeds(new Array(30).fill(0)));
+        api.store?.dispatch(actions.setDownloadSpeeds(new Array(30).fill(0)));
         api.events.emit('start-download', [server.url], { game: 'site' }, `Nexus Mods Download test - ${server.name}`, 
         (err: Error, id: string) => {
             // THIS DOESN'T RETURN UNTIL THE DOWNLOAD COMPLETES OR IS STOPPED!

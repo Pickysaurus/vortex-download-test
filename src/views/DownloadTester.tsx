@@ -27,9 +27,9 @@ function DownloadTester(props: IProps): JSX.Element {
     const nexusAccount = useSelector((state: types.IState) => (state.persistent as any).nexus?.userInfo);
     const minSpeed = (nexusAccount?.isPremium || nexusAccount?.isSupporter) ? 2 : 1;
     const [modalStage, setModalStage]: [TestStage, React.Dispatch<any>] = React.useState('start' as TestStage);
-    const [downloadTesting, setDownloadTesting]: [boolean, React.Dispatch<any>] = React.useState(false);
+    const [downloadTesting, setDownloadTesting]: [boolean, React.Dispatch<boolean>] = React.useState(false);
     const [downloadTestResults, setDownloadTestResults]: [IDownloadTestResults, React.Dispatch<any>] = React.useState(undefined);
-    const [testStage, setTestStage]: [ITestProgress, React.Dispatch<any>] = React.useState(undefined);
+    const [testStage, setTestStage]: [ITestProgress, React.Dispatch<ITestProgress | undefined>] = React.useState(undefined);
     const context: types.IExtensionContext = React.useContext(MainContext as any);
 
     React.useEffect(() => {
