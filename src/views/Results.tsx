@@ -101,10 +101,10 @@ function allServersAreSlow(results: IDownloadTestResults): boolean {
 
 function betterServerAvailable(results: IDownloadTestResults): boolean {
     const cdn = results.cdnTest;
-    const cdnGood = ['High', 'Best'].includes(cdn.rating);
+    const cdnGood = ['High', 'Best'].includes(cdn?.rating ?? '');
     if (cdnGood) return false;
     const goodServers = Object.entries(results.serverTests).filter(([key, res]) => {
-        if (res.speed > (cdn.speed * 1.1)) return true;
+        if (res.speed > ((cdn?.speed ?? 0) * 1.1)) return true;
     });
     return goodServers.length ? true : false;
 }
