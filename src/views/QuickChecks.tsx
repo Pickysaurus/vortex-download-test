@@ -96,7 +96,7 @@ const userAccountStatus = (nexus, t): JSX.Element => {
     );
     
     const membership = nexus?.isPremium ? 'Premium member' : nexus?.isSupporter ? 'Supporter' : 'Free user';
-    const dl = nexus?.isPremium ? 'Unlimited' : nexus?.isSupporter ? '2MB/s' : '1-2MB/s';
+    const dl = nexus?.isPremium ? 'Unlimited' : nexus?.isSupporter ? '3MB/s (24Mbps)' : '1.5MB/s (12Mbps)';
 
     return renderAlert(
         'success', 

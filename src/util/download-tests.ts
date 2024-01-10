@@ -56,18 +56,32 @@ async function getTraceRoute(): Promise<string> {
     }
 }
 
-async function testForDownloadLink(api: types.IExtensionApi, url: string): Promise<string> {
+async function testForDownloadLink(api: types.IExtensionApi, url: string, retry: boolean = true): Promise<string> {
     const values = url.replace('nxm://', '').split('/');
     const [ gameId, modId, fileId ] = [ values[0], values[2], values[4] ];
     const state = api.getState();
-    const APIKey = (state.confidential.account as any)?.nexus?.APIKey;
-    if (!APIKey) throw new Error('Not logged in to Nexus Mods');
     try {
-        const dlLink = await axios.default.get(`https://api.nexusmods.com/v1/games/${gameId}/mods/${modId}/files/${fileId}/download_link.json`, { headers: { apikey: APIKey } });
+        // await api.ext.ensureLoggedIn() // This can ensure the user is logged into Nexus Mods, but it shows a modal prompting login if not.
+        const token = (state.confidential.account as any)?.nexus?.OAuthCredentials.token;
+        if (!token) throw new Error('Not logged in to Nexus Mods');
+        const dlLink = await axios.default.get(`https://api.nexusmods.com/v1/games/${gameId}/mods/${modId}/files/${fileId}/download_link.json`, { headers: { 'Authorization': `Bearer ${token}` } });
         const cdnLink: string = dlLink.data[0].URI;
         return cdnLink;
     }
     catch(err) {
+        if (err as axios.AxiosError) {
+            const axiosError = err as axios.AxiosError;
+            if (axiosError.response?.status === 401 && retry) {
+                try {
+                    // On a 401 error, we try again after refreshing the user's session.
+                    await api.ext.ensureLoggedIn()
+                    return testForDownloadLink(api, url, false)
+                }
+                catch(err2) {
+                    throw err2;
+                }
+            }
+        }
         throw err;
     }
 }

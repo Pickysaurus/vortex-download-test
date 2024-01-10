@@ -65,7 +65,7 @@ const premiumRecommendation = (t: TFunction): JSX.Element => {
         'info',
         'plugin-master',
         t('Get uncapped downloads with Premium'),
-        t('As a non-Premium user, your download speed is capped to 1-2MB/s. Supporting our community is a Premium member will allow you to download as fast as your connection allows.'),
+        t('As a non-Premium user, your download speed is capped to 1.5-3MB/s (12-24Mbps). Supporting our community is a Premium member will allow you to download as fast as your connection allows.'),
         <Button onClick={() => util.opn(premiumUrl).catch(() => undefined)}>{t('Learn More')} <Icon name='open-in-browser' /></Button>
     );
 }

@@ -50,7 +50,7 @@ const DownloadTest = (props: IProps): JSX.Element => {
                         return (
                             <tr>
                                 <td>{r}</td>
-                                <td>{val.speed.toFixed(1)}MB/s</td>
+                                <td>{val.speed.toFixed(1)}MB/s ({(val.speed * 8).toFixed(1)}Mbps)</td>
                                 <td>{val.rating}</td>
                             </tr>
                         );
@@ -64,7 +64,7 @@ const DownloadTest = (props: IProps): JSX.Element => {
                     <Panel.Title><Icon name={traceExpanded ? 'showhide-down' : 'showhide-right'} /> {tracePanelTitle}</Panel.Title>
                 </Panel.Heading>
                 <Panel.Body collapsible>
-                    <p><b>{t('Sample File Download Speed')}</b> {dlResults.cdnTest?.speed?.toFixed(1) || 0}MB/s</p>
+                    <p><b>{t('Sample File Download Speed')}</b> {dlResults.cdnTest?.speed?.toFixed(1) || 0}MB/s ({((dlResults.cdnTest?.speed ?? 0) * 8).toFixed(1)})</p>
                     <p><b>{t('Small File Link')}</b> {dlResults.smallFileExample || t('Unable to resolve link')}</p>
                     <p><b>{t('Large File Link')}</b> {dlResults.largeFileExample || t('Unable to resolve link')}</p>
                     <b>{t('TraceRoute')}</b>
