@@ -3,10 +3,8 @@ import { Alert, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { types, Icon } from 'vortex-api';
-import * as remote from '@electron/remote';
 import * as semver from 'semver';
 
-const app = remote.app;
 
 const QuickChecks = (): JSX.Element => {
 
@@ -14,9 +12,9 @@ const QuickChecks = (): JSX.Element => {
     const nexusAccount = useSelector((state: types.IState) => (state.persistent as any).nexus?.userInfo);
     const downloadThreads = useSelector((state: types.IState) => state.settings?.downloads?.maxParallelDownloads || 1);
     const latestVortex = useSelector((state: types.IState) => (state.persistent as any).nexus?.newestVersion || '0.0.0');
+    const currentVortex = useSelector((state: types.IState) => state.app.appVersion || '0.0.0');
     const networkConnected = useSelector((state: types.IState) => state.session.base?.networkConnected || false);
     const { t } = useTranslation(['download-tester']);
-    const currentVortex = app.getVersion();
 
     return (
         <div>
