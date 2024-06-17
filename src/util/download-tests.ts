@@ -158,14 +158,13 @@ async function testDownloadServer(api: types.IExtensionApi, server: ITestServer)
 
 async function runDownloadTests(context: types.IExtensionContext, minSpeed: number, status: (current?: ITestProgress) => void): Promise<IDownloadTestResults> {
     
-    let serversToTest = [...testServers];
+    let serversToTest: ITestServer[] = [];
     let progress = 0;
     const step = 100 / 12;
     status({message: 'Starting download tests...', progress});
     try {
         status({message: 'Fetching available download servers...', progress});
         const servers = await axios.default.post(`https://api.nexusmods.com/v2/graphql`, { query: speedTestQuery });
-        console.log('Speed test results', servers)
         serversToTest = servers.data.data.speedtestUrls || [];
     }
     catch(err) {
