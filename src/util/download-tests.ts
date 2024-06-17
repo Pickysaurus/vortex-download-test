@@ -11,33 +11,60 @@ const traceCommand: string = 'tracert files.nexus-cdn.com';
 
 const testTimeMs: number = 16000; // 31 seconds as we record the last 30 seconds worth of speed. This allows a second for the connection to start. 
 
+const speedTestQuery = `
+    query speedTestUrls {
+        speedtestUrls {
+            title
+            description
+            location
+            tag
+        }
+    }
+`;
 
 const testServers: ITestServer[] = [
     {
-        name: 'Worldwide - Premium CDN',
-        // url: 'https://nexus-speedtest.b-cdn.net/500MB.bin'
-        url: 'https://cf-speedtest.nexusmods.com/500M'
+        title: "Cloudflare CDN",
+        description: "Server location: Global",
+        location: "https://cf-speedtest.nexusmods.com",
+        tag: "NEXUS_CDN"
     },
     {
-        name: 'EU - Amsterdam',
-        url: 'http://amsterdam.nexus-cdn.com/500M'
+        title: "Amsterdam",
+        description: "Server location: Amsterdam",
+        location: "https://amsterdam.nexus-cdn.com",
+        tag: "AMSTERDAM"
     },
     {
-        name: 'EU - Prague',
-        url: 'http://prague.nexus-cdn.com/500M'
+        title: "Prague",
+        description: "Server location: Prague",
+        location: "https://prague.nexus-cdn.com",
+        tag: "PRAGUE"
     },
     {
-        name: 'US - Los Angeles',
-        url: 'http://la.nexus-cdn.com/500M'
+        title: "Chicago",
+        description: "Server location: Chicago",
+        location: "https://chicago.nexus-cdn.com",
+        tag: "CHICAGO"
     },
     {
-        name: 'US - Chicago',
-        url: 'http://chicago.nexus-cdn.com/500M'
+        title: "Los Angeles",
+        description: "Server location: Los Angeles",
+        location: "https://losangeles.nexus-cdn.com",
+        tag: "LOS_ANGELES"
     },
     {
-        name: 'US - Miami',
-        url: 'http://miami.nexus-cdn.com/500M'
+        title: "Miami",
+        description: "Server location: Miami",
+        location: "https://miami.nexus-cdn.com",
+        tag: "MIAMI"
     },
+    {
+        title: 'Asia - Singapore',
+        description: "Server location: Singapore",
+        location: 'https://singapore.nexus-cdn.com/',
+        tag: 'SINGAPORE'
+    }
 ];
 
 const testCDN = {
@@ -74,7 +101,7 @@ async function testForDownloadLink(api: types.IExtensionApi, url: string, retry:
             if (axiosError.response?.status === 401 && retry) {
                 try {
                     // On a 401 error, we try again after refreshing the user's session.
-                    await api.ext.ensureLoggedIn()
+                    await api.ext.ensureLoggedIn?.()
                     return testForDownloadLink(api, url, false)
                 }
                 catch(err2) {
@@ -87,7 +114,7 @@ async function testForDownloadLink(api: types.IExtensionApi, url: string, retry:
 }
 
 async function testDownloadServer(api: types.IExtensionApi, server: ITestServer): Promise<number> {
-    if (!server.url) throw new Error('No download URL detected for '+server.name);
+    if (!server.location) throw new Error('No download URL detected for '+server.title);
 
     const testEnd = (dlId: string): number => {
         // Stop the download
@@ -114,7 +141,7 @@ async function testDownloadServer(api: types.IExtensionApi, server: ITestServer)
     return new Promise(async (resolve, reject) => {
         // Clear the download speed graph
         api.store?.dispatch(actions.setDownloadSpeeds(new Array(30).fill(0)));
-        api.events.emit('start-download', [server.url], { game: 'site' }, `Nexus Mods Download test - ${server.name}`, 
+        api.events.emit('start-download', [server.location+'/500M'], { game: 'site' }, `Nexus Mods Download test - ${server.title}`, 
         (err: Error, id: string) => {
             // THIS DOESN'T RETURN UNTIL THE DOWNLOAD COMPLETES OR IS STOPPED!
             if (!!err) return reject('Download test failed: '+err);
@@ -124,17 +151,28 @@ async function testDownloadServer(api: types.IExtensionApi, server: ITestServer)
         const state = api.getState();
         const downloads = state.persistent?.downloads?.files || {};
         Object.keys(downloads).map(key => (downloads[key] as any).id = key);
-        const dl: any = Object.values(downloads).find(d => d.urls.includes(server.url));
+        const dl: any = Object.values(downloads).find(d => d.urls.includes(server.location!));
         if (dl) return resolve(downloadCallback(undefined, dl.id));
     });
 }
 
-async function runDownloadTests(context: types.IExtensionContext, minSpeed: number, status: (current: ITestProgress) => void): Promise<IDownloadTestResults> {
+async function runDownloadTests(context: types.IExtensionContext, minSpeed: number, status: (current?: ITestProgress) => void): Promise<IDownloadTestResults> {
     
-    const serversToTest = [...testServers];
+    let serversToTest = [...testServers];
     let progress = 0;
-    const step = 100 / 11;
+    const step = 100 / 12;
     status({message: 'Starting download tests...', progress});
+    try {
+        status({message: 'Fetching available download servers...', progress});
+        const servers = await axios.default.post(`https://api.nexusmods.com/v2/graphql`, { query: speedTestQuery });
+        console.log('Speed test results', servers)
+        serversToTest = servers.data.data.speedtestUrls || [];
+    }
+    catch(err) {
+        log('error', 'Unable to get a list of CDN locations, using fallback', err);
+        // Use the hard-coded backups!
+        serversToTest = [...testServers];
+    }
     // Pause any active downloads
     const state = context.api.getState();
     const downloads = state.persistent?.downloads?.files || {};
@@ -153,13 +191,13 @@ async function runDownloadTests(context: types.IExtensionContext, minSpeed: numb
             results[resKey] = result;
             // If large test, we also want to work out the CDN server.
             if (key === 'large') {
-                serversToTest.unshift({ name: 'Nexus Mods CDN', url: result });
+                serversToTest.unshift({ title: 'Nexus Mods CDN', location: result, tag: 'LARGETEST', description:'' });
             }
         }
         catch(err) {
             log('error', 'Could not test CDN links', {err, file});
             if (key === 'large') {
-                serversToTest.unshift({ name: 'Nexus Mods CDN', url: undefined });
+                serversToTest.unshift({ title: 'Nexus Mods CDN', location: '', tag: 'NexusModsCDN', description: '' });
             }
         }
         
@@ -168,25 +206,25 @@ async function runDownloadTests(context: types.IExtensionContext, minSpeed: numb
     
     // Perform the download test for each CDN node.
     for (const server of serversToTest) {
-        status({message: `Testing download server: ${server.name}`, progress: progress += step});
+        status({message: `Testing download server: ${server.title}`, progress: progress += step});
         try {
             const speed = await testDownloadServer(context.api, server);
-            if (server.name === 'Nexus Mods CDN') {
+            if (server.title === 'Cloudflare CDN') {
                 results.cdnTest = { speed, rating: getRating(speed, minSpeed) };
                 continue;
             }
-            if (!results.serverTests[server.name]) {
+            if (!results.serverTests[server.title]) {
                 // Ensure we only write the value once, as this can be called in two different places.
-                results.serverTests[server.name] = { speed, rating: getRating(speed, minSpeed) };
+                results.serverTests[server.title] = { speed, rating: getRating(speed, minSpeed) };
             };
         }
         catch(err) {
-            log('error', 'Error running server download test', { err, name: server.name });
-            if (server.name === 'Nexus Mods CDN') {
+            log('error', 'Error running server download test', { err, name: server.title });
+            if (server.title === 'Cloudflare CDN') {
                 results.cdnTest = { speed: 0, rating: 'Error' };
                 continue;
             }
-            results.serverTests[server.name] = { speed: 0, rating: 'Error' };
+            results.serverTests[server.title] = { speed: 0, rating: 'Error' };
         }
     }
 

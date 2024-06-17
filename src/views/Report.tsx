@@ -8,7 +8,7 @@ import { getData as getCountries } from 'country-list';
 import { Button, FormGroup, ControlLabel } from 'react-bootstrap';
 import Select from 'react-select';
 
-const forumUrl = 'https://forums.nexusmods.com/index.php?app=forums&module=post&section=post&do=new_post&f=117';
+const forumUrl = 'https://forums.nexusmods.com/forum/8871-download-speed-troubleshooting/?do=add';
 
 
 interface IProps {

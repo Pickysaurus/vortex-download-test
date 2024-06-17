@@ -25,8 +25,10 @@ interface ITestProgress {
 }
 
 interface ITestServer {
-    name: string;
-    url?: string;
+    title: string;
+    description: string;
+    tag: string;
+    location: string;
 }
 
 interface ITestWithRating {
